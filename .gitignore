@@ -1,0 +1,66 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.manifest
+*.spec
+
+# --- Virtual environments ---
+.venv/
+.venv_test/
+venv/
+env/
+pyvenv.cfg
+
+# --- IDE ---
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.trae/
+.trae-cn/
+
+# --- Project temp / runtime ---
+.tmp/
+.uploads/
+logs/
+*.log
+*.tmp
+.tmp/
+
+# --- PaddleX/OCR model cache ---
+.paddleocr_home/
+.paddlex_home/
+
+# --- Jupyter checkpoints ---
+.ipynb_checkpoints/
+
+# --- Generated test outputs ---
+tests/output/
+tests/testContent/
+
+# --- OS junk ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# --- Environment / secrets ---
+.env
+.env.*
+*.key
+*.pem

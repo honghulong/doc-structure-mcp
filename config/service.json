@@ -1,0 +1,32 @@
+{
+  "service": {
+    "port": 8766,
+    "host": "0.0.0.0",
+    "debug": false,
+    "max_file_size_mb": 20,
+    "max_pdf_pages": 50
+  },
+  "pipeline": {
+    "ocr": {
+      "enabled": true
+    },
+    "layout": {
+      "enabled": true,
+      "model": "PP-DocLayout_plus-L"
+    },
+    "table": {
+      "enabled": true
+    },
+    "layout_parsing": {
+      "enabled": true,
+      "use_doc_orientation_classify": true,
+      "use_doc_unwarping": false,
+      "use_textline_orientation": false
+    }
+  },
+  "paths": {
+    "temp_dir": ".tmp",
+    "model_cache_home": ".paddleocr_home",
+    "paddlex_home": ".paddlex_home"
+  }
+}
