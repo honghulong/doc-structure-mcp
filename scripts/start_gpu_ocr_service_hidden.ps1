@@ -1,5 +1,6 @@
 param(
-    [int]$Port = 8769
+    [int]$Port = 8769,
+    [switch]$NoStopOld
 )
 
 $ErrorActionPreference = "Stop"
@@ -10,6 +11,7 @@ $OutLog = Join-Path $LogDir "gpu_ocr_service.out.log"
 $ErrLog = Join-Path $LogDir "gpu_ocr_service.err.log"
 $Python = Join-Path $ProjectRoot ".venv\Scripts\python.exe"
 $Service = Join-Path $ProjectRoot "src\gpu_ocr_service.py"
+$ProjectRootText = [string]$ProjectRoot
 
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
 
@@ -18,6 +20,19 @@ if (-not (Test-Path $Python)) {
 }
 if (-not (Test-Path $Service)) {
     throw "Missing service file: $Service"
+}
+
+if (-not $NoStopOld) {
+    $oldProcesses = Get-CimInstance Win32_Process |
+        Where-Object {
+            $_.CommandLine -like "*gpu_ocr_service.py*" -and
+            $_.CommandLine -like "*$ProjectRootText*"
+        }
+
+    foreach ($oldProcess in $oldProcesses) {
+        Write-Host "[GPU OCR] stopping old pid=$($oldProcess.ProcessId)"
+        Stop-Process -Id $oldProcess.ProcessId -Force -ErrorAction Stop
+    }
 }
 
 $env:GPU_OCR_PORT = "$Port"
