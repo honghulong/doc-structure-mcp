@@ -115,7 +115,12 @@ body {{
 
 
 def build_plain_docx(result, min_confidence=0.3):
-    """Build an editable DOCX text draft from OCR lines, grouped only by rows."""
+    """Build an editable DOCX text draft from OCR lines, grouped only by rows.
+
+    Tall, narrow OCR boxes are emitted one character per line. This keeps
+    vertical labels readable in Word without forcing the whole plain-document
+    fallback into helper tables.
+    """
     doc = Document()
     style = doc.styles["Normal"]
     style.font.name = "SimSun"
@@ -129,7 +134,7 @@ def build_plain_docx(result, min_confidence=0.3):
             if line["confidence"] >= min_confidence and line["text"].strip()
         ]
         for row in _cluster_rows(lines):
-            text = "  ".join(item["text"].strip() for item in sorted(row, key=lambda x: x["x1"]))
+            text = "  ".join(_plain_docx_text(item) for item in sorted(row, key=lambda x: x["x1"]))
             if text:
                 doc.add_paragraph(text)
 
@@ -185,6 +190,13 @@ def _looks_vertical_text(line):
     if height / width < 1.8:
         return False
     return _cjk_ratio(text) >= 0.75
+
+
+def _plain_docx_text(line):
+    text = line["text"].strip()
+    if not _looks_vertical_text(line):
+        return text
+    return "\n".join(char for char in text if not char.isspace())
 
 
 def _cjk_ratio(text):
