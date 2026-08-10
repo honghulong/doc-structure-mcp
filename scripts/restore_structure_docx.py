@@ -451,9 +451,12 @@ def build_region_geometry_docx(payload: dict, source_path: Path | None = None) -
         regions = _restore_regions(page)
         raw = _raw_structure_res(page)
         cell_boxes = _table_cell_boxes(page)
-        if len(cell_boxes) >= 8:
-            if not _should_use_cell_box_table(page, cell_boxes):
-                continue
+        # Cell boxes are only a high-confidence route when restore regions are
+        # dense enough to stabilize the grid. If they are not, still try the
+        # region geometry below: HTML restore already proves region/items keep
+        # the trustworthy source-page coordinates for forms such as invoices
+        # and incoming-document registration sheets.
+        if len(cell_boxes) >= 8 and _should_use_cell_box_table(page, cell_boxes):
             if page_index:
                 doc.add_page_break()
             _set_page_orientation(doc, page.get("width"), page.get("height"))

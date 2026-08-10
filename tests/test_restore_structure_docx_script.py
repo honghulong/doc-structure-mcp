@@ -130,6 +130,52 @@ def test_build_best_docx_uses_pred_html_table_when_available(tmp_path):
     assert [paragraph.text for paragraph in doc.paragraphs] == ["outside"]
 
 
+def test_build_best_docx_falls_back_to_region_geometry_when_cell_boxes_are_unstable(tmp_path):
+    payload = {
+        "pages": [{
+            "page_no": 1,
+            "width": 1000,
+            "height": 800,
+            "restore": {
+                "region_restore": {
+                    "regions": [
+                        {"index": 1, "rect": [50, 120, 180, 220], "items": [{"text": "左标", "rect": [80, 145, 110, 190]}]},
+                        {"index": 2, "rect": [180, 120, 500, 220], "items": [{"text": "左内容", "rect": [220, 145, 300, 170]}]},
+                        {"index": 3, "rect": [500, 120, 630, 220], "items": [{"text": "右标", "rect": [535, 145, 565, 190]}]},
+                        {"index": 4, "rect": [630, 120, 950, 220], "items": [{"text": "右内容", "rect": [670, 145, 760, 170]}]},
+                    ],
+                },
+            },
+            "structure": {
+                "summary": {
+                    "tables": [{
+                        "cell_boxes": [
+                            [50, 120, 180, 220], [180, 120, 500, 220], [500, 120, 630, 220], [630, 120, 950, 220],
+                            [50, 220, 180, 320], [180, 220, 500, 320], [500, 220, 630, 320], [630, 220, 950, 320],
+                        ],
+                    }],
+                },
+                "raw_results": [{
+                    "res": {
+                        "layout_det_res": {"boxes": [{"label": "table", "coordinate": [50, 120, 950, 320]}]},
+                        "table_res_list": [{"pred_html": "<table><tr><td>semantic fallback</td></tr></table>"}],
+                    },
+                }],
+            },
+        }],
+    }
+    pages = extract_docx_pages(payload)
+    output = tmp_path / "regions.docx"
+    output.write_bytes(build_best_docx(payload, pages, grid_cols=36, grid_rows=48))
+
+    doc = Document(str(output))
+    cells = [cell.text.strip() for table in doc.tables for row in table.rows for cell in row.cells]
+
+    assert "左标" in cells
+    assert "右内容" in cells
+    assert "semantic fallback" not in cells
+
+
 def test_build_best_docx_uses_plain_rows_for_non_table_documents(tmp_path):
     payload = {
         "pages": [{
